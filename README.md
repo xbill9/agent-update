@@ -23,6 +23,18 @@ update-agents claude codex      # just these two
 agy-update --check hub ide
 ```
 
+## Install
+
+```
+make install           # ./test, then bin/* into ~/bin
+make install BINDIR=/usr/local/bin
+make uninstall
+make check             # update-agents --check
+```
+
+`make install` writes `~/bin` only. `make deploy` runs `./deploy` (bucket +
+`~/bin`), which is what makes a change survive `update-all`.
+
 ## Deploy
 
 `~/bin` is fed from the stage bucket: `update-all` runs `update-update`, which
