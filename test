@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# test — syntax-check and lint every script, then run each --help.
+set -euo pipefail
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+scripts=("$root"/bin/* "$root/deploy" "$root/test")
+
+for s in "${scripts[@]}"; do bash -n "$s"; done
+if command -v shellcheck >/dev/null 2>&1; then
+  shellcheck -S warning "${scripts[@]}"
+else
+  echo "test: shellcheck not installed, lint skipped" >&2
+fi
+for s in "$root"/bin/*; do "$s" --help >/dev/null; done
+echo "test: ok"

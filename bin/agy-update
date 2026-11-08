@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+# agy-update — bring every Antigravity tool on this machine to the latest stable.
+#
+#   agy      CLI          ~/.local/bin/agy        official install.sh
+#   hub      antigravity  ~/Antigravity-x64       tarball from the hub updater channel
+#   ide      IDE          ~/Antigravity IDE       tarball from the IDE updater API (sha256-checked)
+#
+# The tarball installs cannot update themselves ("APPIMAGE env is not defined"),
+# so this script does it: read the channel, compare with the installed version,
+# download, verify, and swap the directory in place (previous copy kept as <dir>.prev).
+#
+# Usage: agy-update [--check] [--force] [agy|hub|ide ...]   (default: all three)
+set -euo pipefail
+
+HUB_DIR="${HUB_DIR:-$HOME/Antigravity-x64}"
+IDE_DIR="${IDE_DIR:-$HOME/Antigravity IDE}"
+HUB_MANIFEST="https://antigravity-hub-auto-updater-974169037036.us-central1.run.app/manifest/latest-x64-linux.yml"
+IDE_API="https://antigravity-ide-auto-updater-974169037036.us-central1.run.app/api/update/linux-x64/stable/latest"
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/agy-update"
+
+CHECK=0 FORCE=0 TARGETS=()
+for a in "$@"; do
+  case "$a" in
+    --check) CHECK=1 ;;
+    --force) FORCE=1 ;;
+    agy|hub|ide) TARGETS+=("$a") ;;
+    -h|--help) sed -n '2,13p' "$0"; exit 0 ;;
+    *) echo "unknown argument: $a" >&2; exit 2 ;;
+  esac
+done
+[ ${#TARGETS[@]} -gt 0 ] || TARGETS=(agy hub ide)
+
+log() { printf '\033[1m[%s]\033[0m %s\n' "$1" "$2"; }
+
+# Version of the hub install: package.json inside resources/app.asar.
+hub_installed() {
+  [ -f "$HUB_DIR/resources/app.asar" ] || { echo none; return; }
+  python3 -I - "$HUB_DIR/resources/app.asar" <<'EOF'
+import json, struct, sys
+f = open(sys.argv[1], 'rb'); h = f.read(16)
+n = struct.unpack('<I', h[12:16])[0]
+e = json.loads(f.read(n))['files']['package.json']
+f.seek(8 + struct.unpack('<I', h[4:8])[0] + int(e['offset']))
+print(json.loads(f.read(e['size']))['version'])
+EOF
+}
+
+ide_installed() {
+  local p="$IDE_DIR/resources/app/product.json"
+  [ -f "$p" ] || { echo none; return; }
+  python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["ideVersion"])' "$p"
+}
+
+# Newer-than test via sort -V; equal counts as not newer.
+newer() { [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -1)" = "$1" ]; }
+
+# Extract tarball $1 (top-level dir $2) and swap it into place at $3.
+swap_in() {
+  local tgz="$1" top="$2" dest="$3" stage
+  stage="$(mktemp -d "$CACHE/stage.XXXXXX")"
+  tar -xzf "$tgz" -C "$stage"
+  [ -d "$stage/$top" ] || { echo "tarball has no '$top/' directory" >&2; rm -rf "$stage"; return 1; }
+  rm -rf "$dest.prev"
+  [ -e "$dest" ] && mv "$dest" "$dest.prev"
+  mv "$stage/$top" "$dest"
+  rmdir "$stage"
+}
+
+running_warn() {
+  if pgrep -f -- "$1" >/dev/null 2>&1; then
+    log "$2" "still running from the old copy — restart it to pick up the new version"
+  fi
+}
+
+update_agy() {
+  local before after
+  if ! command -v agy >/dev/null 2>&1; then
+    [ $CHECK = 1 ] && { log agy "not installed"; return; }
+    curl -fsSL https://antigravity.google/cli/install.sh | bash
+    log agy "installed $(agy --version 2>/dev/null)"
+    return
+  fi
+  before="$(agy --version 2>/dev/null)"
+  if [ $CHECK = 1 ]; then log agy "installed $before (run without --check to update)"; return; fi
+  agy update
+  after="$(agy --version 2>/dev/null)"
+  log agy "$before -> $after"
+}
+
+update_hub() {
+  local manifest latest url cur tgz
+  manifest="$(curl -fsSL "$HUB_MANIFEST")"
+  latest="$(sed -n 's/^version: *//p' <<<"$manifest" | head -1)"
+  # The channel lists the AppImage/.deb; the tarball sits next to them.
+  url="$(grep -o 'https://[^ ]*/linux-x64/Antigravity\.AppImage' <<<"$manifest" | head -1)"
+  [ -n "$latest" ] && [ -n "$url" ] || { log hub "could not parse $HUB_MANIFEST"; return 1; }
+  url="${url%Antigravity.AppImage}Antigravity.tar.gz"
+  cur="$(hub_installed)"
+  if ! newer "$latest" "$cur" && [ $FORCE = 0 ]; then log hub "up to date ($cur)"; return; fi
+  log hub "installed $cur, latest $latest"
+  [ $CHECK = 1 ] && return
+  tgz="$CACHE/Antigravity-$latest.tar.gz"
+  curl -fL --progress-bar -o "$tgz.part" "$url" && mv "$tgz.part" "$tgz"
+  tar -tzf "$tgz" >/dev/null   # integrity: the channel publishes no hash for the tarball
+  swap_in "$tgz" Antigravity-x64 "$HUB_DIR"
+  rm -f "$tgz"
+  log hub "now $(hub_installed)  (previous kept at $HUB_DIR.prev)"
+  running_warn "$HUB_DIR/antigravity" hub
+}
+
+update_ide() {
+  local json latest url sha cur tgz
+  json="$(curl -fsSL "$IDE_API")"
+  # The URL contains a space ("Antigravity IDE.tar.gz"): split on tab, encode the space for curl.
+  IFS=$'\t' read -r url sha < <(python3 -I -c 'import json,sys; j=json.load(sys.stdin); print(j["url"], j["sha256hash"], sep="\t")' <<<"$json")
+  url="${url// /%20}"
+  latest="$(sed -n 's#.*/stable/\([0-9][0-9.]*\)-[0-9]*/.*#\1#p' <<<"$url")"
+  [ -n "$latest" ] || { log ide "could not read a version from $url"; return 1; }
+  cur="$(ide_installed)"
+  if ! newer "$latest" "$cur" && [ $FORCE = 0 ]; then log ide "up to date ($cur)"; return; fi
+  log ide "installed $cur, latest $latest"
+  [ $CHECK = 1 ] && return
+  tgz="$CACHE/AntigravityIDE-$latest.tar.gz"
+  curl -fL --progress-bar -o "$tgz.part" "$url" && mv "$tgz.part" "$tgz"
+  echo "$sha  $tgz" | sha256sum -c --quiet - || { log ide "sha256 mismatch, not installing"; rm -f "$tgz"; return 1; }
+  swap_in "$tgz" "Antigravity IDE" "$IDE_DIR"
+  rm -f "$tgz"
+  log ide "now $(ide_installed)  (previous kept at $IDE_DIR.prev)"
+  running_warn "$IDE_DIR/antigravity-ide" ide
+}
+
+mkdir -p "$CACHE"
+rc=0
+for t in "${TARGETS[@]}"; do "update_$t" || rc=1; done
+exit $rc

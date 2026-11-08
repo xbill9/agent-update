@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# update-agents — update every coding agent on this machine.
+#
+# Runs each <agent>-update script that sits next to this one, in order, and
+# keeps going when one fails. Exit status is non-zero if any of them failed.
+#
+# Usage: update-agents [--check] [agent ...]   (default: all agents)
+#   --check   report installed versions only; passed through to each script
+#   agent     claude | codex | agy
+set -uo pipefail
+
+AGENTS=(claude codex agy)
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+pass=() pick=()
+for a in "$@"; do
+  case "$a" in
+    --check) pass+=("$a") ;;
+    -h|--help) sed -n '2,10p' "$0"; exit 0 ;;
+    -*) echo "unknown argument: $a" >&2; exit 2 ;;
+    *) pick+=("$a") ;;
+  esac
+done
+[ ${#pick[@]} -gt 0 ] || pick=("${AGENTS[@]}")
+
+failed=()
+for name in "${pick[@]}"; do
+  script="$here/$name-update"
+  [ -x "$script" ] || { echo "update-agents: no $name-update next to $0" >&2; failed+=("$name"); continue; }
+  printf '\n==> %s-update\n' "$name"
+  "$script" "${pass[@]}" || failed+=("$name")
+done
+
+if [ ${#failed[@]} -gt 0 ]; then
+  echo "update-agents: failed: ${failed[*]}" >&2
+  exit 1
+fi
