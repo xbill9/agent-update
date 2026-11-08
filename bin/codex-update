@@ -1,27 +1,36 @@
 #!/usr/bin/env bash
 # codex-update — install or update the OpenAI Codex CLI to the latest release.
 #
-#   codex    CLI   ~/.local/bin/codex    official install.sh from chatgpt.com, non-interactive
+#   codex    CLI   ~/.local/bin/codex    official install.sh from chatgpt.com
+#
+# CODEX_NON_INTERACTIVE=1 makes the installer run without prompts, so this
+# works unattended under update-all. It installs when codex is missing and
+# updates it otherwise.
 #
 # Usage: codex-update [--check]
 #   --check   print the installed version and exit without changing anything
+#
+# Needs curl. Exit status: 0 on success, non-zero if the download or the
+# installer failed, 2 on a bad argument.
 set -euo pipefail
 
 CHECK=0
 for a in "$@"; do
   case "$a" in
     --check) CHECK=1 ;;
-    -h|--help) sed -n '2,7p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,/^[^#]/s/^# \{0,1\}//p' "$0"; exit 0 ;;
     *) echo "unknown argument: $a" >&2; exit 2 ;;
   esac
 done
 
 log() { printf '\033[1m[%s]\033[0m %s\n' codex "$1"; }
-ver() { codex --version 2>/dev/null | head -1 || true; }
+# Installed version, or "none" when codex is not on PATH.
+ver() { { command -v codex >/dev/null 2>&1 && codex --version 2>/dev/null | head -1; } || echo none; }
 
-before="$(command -v codex >/dev/null 2>&1 && ver || echo none)"
+before="$(ver)"
 if [ $CHECK = 1 ]; then log "installed: $before"; exit 0; fi
 
+# pipefail makes a failed download fail the pipeline, not just a failed install.
 curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh
-hash -r
+hash -r   # forget a cached path, in case the install moved the binary
 log "$before -> $(ver)"

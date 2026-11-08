@@ -17,5 +17,6 @@ Bash scripts that install or update coding agents. `bin/*` is what ships; `deplo
 ## Script conventions
 
 - Every `bin/*` script takes `--check` (report installed versions, change nothing) and `-h|--help`, and rejects unknown arguments with exit 2. `set -euo pipefail` except `update-agents`, which must continue past a failing child.
-- `--help` prints the header comment with `sed -n '2,Np' "$0"`. When the header gains or loses lines, update `N`.
+- The header comment is the documentation: `--help` prints it (from line 2 to the first non-comment line). Keep usage, options, environment and exit status there.
+- In `agy-update`, the `update_*` functions are called as `update_$t || rc=1`, so bash ignores `set -e` inside them. Every step that can fail needs `|| return 1` or an explicit check; test a new failure path with a stub on `PATH`, not a real install.
 - A new agent needs: `bin/<agent>-update`, its name in `AGENTS` in `bin/update-agents`, and a row in the README table. `/add-agent` does this.

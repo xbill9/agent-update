@@ -9,7 +9,13 @@ Scripts that install or update the coding agents on a Linux machine.
 | `bin/agy-update` | Antigravity CLI, hub, IDE | `agy update`; hub and IDE from their updater channels, swapped in place (previous copy kept as `<dir>.prev`; IDE tarball sha256-checked) |
 | `bin/update-agents` | all of the above | runs each `<agent>-update`, keeps going past a failure, exits non-zero if any failed |
 
-Every script takes `--check`, which reports installed versions and changes nothing:
+`agy-update` leaves a hub or IDE that is not installed alone and says so;
+`--force` installs it, or reinstalls one that is up to date.
+
+Every script takes `--check`, which reports installed versions and changes
+nothing, and `--help`, which prints its header: usage, environment, exit
+status. Exit status is 0 on success, 1 if an update failed (`update-agents`
+lists which), 2 on a bad argument.
 
 ```
 update-agents --check
