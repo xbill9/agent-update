@@ -83,7 +83,24 @@ For the hub and the IDE, `--check` also reads the release channel, so it shows t
 update-agents
 ```
 
-It runs `claude-update`, `codex-update` and `agy-update` in that order. Names pick a subset:
+It runs `claude-update`, `codex-update` and `agy-update` in that order. Each vendor installer prints its own progress; the lines each script adds start with the agent's name in brackets:
+
+```bash
+update-agents 2>&1 | grep '^\['
+```
+
+```text
+[claude] 2.1.322 (Claude Code) -> 2.1.322 (Claude Code)
+[codex] codex-cli 0.166.0 -> codex-cli 0.167.0
+[agy] 1.5.4 -> 1.5.4
+[hub] installed 2.29.0, latest 2.31.0
+[hub] now 2.31.0  (previous kept at /home/xbill/Antigravity-x64.prev)
+[ide] up to date (2.6.0)
+```
+
+One run moved Codex to 0.167.0 and the hub to 2.31.0, and left Claude Code, the agy CLI and the IDE alone, since they were already on the latest release. The exit status was 0.
+
+Names pick a subset:
 
 ```bash
 update-agents claude codex      # just these two
@@ -220,13 +237,14 @@ For a machine with more than one coding agent, `update-agents`. Run `update-agen
 The goal of this project was to keep every coding agent on a Linux machine current with one command. The key to the solution was one script per agent with the same flags and exit codes, and an umbrella that runs them all and keeps going past a failure. The results were:
 
 - 🟢 `update-agents` updates Claude Code, Codex and Antigravity's CLI, hub and IDE.
+- 🟢 One run on 2026-11-10 updated Codex 0.166.0 to 0.167.0 and the hub 2.29.0 to 2.31.0, and left the three current tools alone.
 - 🟢 `--check` reports installed versions, and the latest available for the hub and IDE, without changing anything.
 - 🟢 Hub and IDE tarballs are verified and swapped in place, with the previous copy kept as `<dir>.prev`.
 - 🟢 A failed installer is listed and the others finish; exit status 1 for a failure, 2 for a bad argument.
 - ⚠️ The hub channel publishes no hash, so its tarball is checked for structure only.
 - ⚠️ Linux x64 only; macOS and Windows are not covered.
 
-Scope: one Linux x64 machine, scripts at commit `a0f675b`, with Claude Code 2.1.322, codex-cli 0.166.0, agy 1.5.4, hub 2.29.0 and IDE 2.6.0 installed as reported by `--check` on 2026-11-10. The output above comes from `./test`, `--check`, `--help` and a bad-argument run; a full update was not run for this article. Parts of the writing were done with AI assistance (Claude).
+Scope: one Linux x64 machine, scripts at commit `a0f675b`, with Claude Code 2.1.322, codex-cli 0.166.0, agy 1.5.4, hub 2.29.0 and IDE 2.6.0 installed as reported by `--check` on 2026-11-10. The output above comes from `./test`, `--check`, `--help`, a bad-argument run and one full `update-agents` run on the same day. Parts of the writing were done with AI assistance (Claude).
 
 The strategy for keeping coding agents current was validated with an incremental step by step approach.
 

@@ -1,0 +1,41 @@
+2026-11-10T11:19:06-05:00
+
+==> claude-update
+Setting up Claude Code...
+
+Checking installation status...
+Installing Claude Code native build latest...
+Setting up launcher and shell integration...
+✔ Claude Code successfully installed!
+
+  Version: 2.1.322
+
+  Location: ~/.local/bin/claude
+
+
+  Next: Run claude --help to get started
+
+✅ Installation complete!
+
+[claude] 2.1.322 (Claude Code) -> 2.1.322 (Claude Code)
+
+==> codex-update
+==> Updating Codex CLI from 0.166.0 to 0.167.0
+==> Detected platform: Linux (x64)
+==> Resolved version: 0.167.0
+==> Downloading Codex CLI
+==> Installing standalone package to /home/xbill/.codex/packages/standalone/releases/0.167.0-x86_64-unknown-linux-musl
+==> /home/xbill/.local/bin is already on PATH
+==> Current terminal: codex
+==> Future terminals: open a new terminal and run: codex
+Codex CLI 0.167.0 installed successfully.
+[codex] codex-cli 0.166.0 -> codex-cli 0.167.0
+
+==> agy-update
+⟳ Checking for updates... (current version 1.5.4)
+✓ You are already on the latest version.
+[agy] 1.5.4 -> 1.5.4
+[hub] installed 2.29.0, latest 2.31.0
+[hub] now 2.31.0  (previous kept at /home/xbill/Antigravity-x64.prev)
+[ide] up to date (2.6.0)
+rc=0
