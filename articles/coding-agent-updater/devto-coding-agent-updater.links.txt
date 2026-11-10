@@ -1,3 +1,4 @@
 devto = https://dev.to/xbill/coding-agent-updater-the-tool-you-didnt-know-you-needed-45pc
 medium = https://medium.com/@xbill999/coding-agent-updater-the-tool-you-didnt-know-you-needed-64ff8a5f10a2
 substack = https://xbill9.substack.com/p/coding-agent-updater-the-tool-you
+linkedin = https://www.linkedin.com/feed/update/urn:li:activity:7525959868231598080/

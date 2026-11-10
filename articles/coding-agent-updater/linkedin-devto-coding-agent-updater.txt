@@ -1,0 +1,16 @@
+Five coding tools on my machine, five different ways to update them. Now it is one command.
+
+Claude Code, Codex and Antigravity each ship on their own channel and on their own schedule. A small set of Bash scripts brings all of them to the latest release with one command, reports versions without touching anything, and keeps going when one installer fails.
+
+What is in it:
+
+- 🟢 update-agents updates Claude Code, Codex and Antigravity's CLI, hub and IDE.
+- 🟢 One run on 2026-11-10 updated Codex 0.166.0 to 0.167.0 and the hub 2.29.0 to 2.31.0, and left the three current tools alone.
+- 🟢 --check reports installed versions, and the latest available for the hub and IDE, without changing anything.
+- 🟢 Hub and IDE tarballs are verified and swapped in place, with the previous copy kept as <dir>.prev.
+
+dev.to: https://dev.to/xbill/coding-agent-updater-the-tool-you-didnt-know-you-needed-45pc
+Medium: https://medium.com/@xbill999/coding-agent-updater-the-tool-you-didnt-know-you-needed-64ff8a5f10a2
+Substack: https://xbill9.substack.com/p/coding-agent-updater-the-tool-you
+
+#ClaudeCode #Codex #Antigravity #bash
