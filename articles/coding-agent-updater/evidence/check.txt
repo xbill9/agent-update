@@ -1,0 +1,12 @@
+2026-11-10T10:57:50-05:00
+
+==> claude-update
+[claude] installed: 2.1.322 (Claude Code)
+
+==> codex-update
+[codex] installed: codex-cli 0.166.0
+
+==> agy-update
+[agy] installed 1.5.4 (run without --check to update)
+[hub] installed 2.29.0, latest 2.31.0
+[ide] up to date (2.6.0)

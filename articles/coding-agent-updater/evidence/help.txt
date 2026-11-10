@@ -1,0 +1,38 @@
+agy-update — bring every Antigravity tool on this machine to the latest stable.
+
+  agy   CLI          ~/.local/bin/agy      `agy update`; official install.sh if missing
+  hub   antigravity  ~/Antigravity-x64     tarball from the hub updater channel
+  ide   IDE          ~/Antigravity IDE     tarball from the IDE updater API, sha256-checked
+
+The hub and IDE tarball installs cannot update themselves ("APPIMAGE env is
+not defined"), so this script does it: read the channel, compare with the
+installed version, download, verify, extract to a staging directory, and
+swap it in place. The previous copy is kept as "<dir>.prev" (one generation).
+A hub or IDE that is not installed is reported and left alone; --force
+installs it.
+
+Usage: agy-update [--check] [--force] [agy|hub|ide ...]   (default: all three)
+  --check   report installed (and, for hub/ide, latest) versions; change nothing
+  --force   reinstall hub/ide even when up to date, or install them when absent
+
+Environment: HUB_DIR, IDE_DIR override the install directories;
+downloads are staged in ${XDG_CACHE_HOME:-~/.cache}/agy-update.
+Needs curl, tar, sha256sum and python3.
+
+Exit status: 0 if every target succeeded, 1 if any failed, 2 on a bad argument.
+---
+update-agents — update every coding agent on this machine.
+
+Runs each <agent>-update script that sits next to this one, in order, and
+keeps going when one fails, so a broken installer for one agent does not
+block the others.
+
+Usage: update-agents [--check] [agent ...]   (default: all agents)
+  --check   report installed versions only; passed through to each script
+  agent     claude | codex | agy
+
+Named update-agents, not agent-update: update-all runs every *-update in
+~/bin, and would then run each agent's update twice.
+
+Exit status: 0 if every script succeeded, 1 if any failed (they are listed
+on stderr), 2 on a bad argument.

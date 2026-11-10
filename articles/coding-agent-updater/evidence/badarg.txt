@@ -1,0 +1,2 @@
+unknown argument: --bogus
+badarg rc=2
