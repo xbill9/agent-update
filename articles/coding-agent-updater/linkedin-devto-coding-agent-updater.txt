@@ -12,5 +12,6 @@ What is in it:
 dev.to: https://dev.to/xbill/coding-agent-updater-the-tool-you-didnt-know-you-needed-45pc
 Medium: https://medium.com/@xbill999/coding-agent-updater-the-tool-you-didnt-know-you-needed-64ff8a5f10a2
 Substack: https://xbill9.substack.com/p/coding-agent-updater-the-tool-you
+GitHub: https://github.com/xbill9/agent-update
 
 #ClaudeCode #Codex #Antigravity #bash
