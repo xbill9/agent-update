@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Coding Agent Updater: The Tool You Didn't Know You Needed</title>
+  <meta name="description" content="Claude Code, Codex and Antigravity each ship on their own channel and on their own schedule. A small set of Bash scripts brings all of them to the latest release with one command, reports versions without touching anything, and keeps going when one installer fails." />
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+  <style>
+    body{font-family:-apple-system,'Segoe UI',Roboto,'Liberation Sans',Arial,sans-serif;
+         font-size:18px;line-height:1.58;max-width:42em;color:#242424;}
+    h1,h2,h3,h4{font-weight:700;line-height:1.25;margin-top:1.8em;}
+    h4{font-size:1.25em;}
+    img{max-width:100%;height:auto;display:block;margin:1.6em 0;}
+    pre{background:#f7f7f7;border:1px solid #e6e6e6;border-radius:4px;
+        padding:12px 14px;overflow-x:auto;font-size:14px;line-height:1.45;}
+    code{font-family:'Liberation Mono',Menlo,Consolas,monospace;}
+    :not(pre)>code{background:#f2f2f2;padding:1px 5px;border-radius:3px;font-size:.9em;}
+    blockquote{border-left:3px solid #ddd;margin-left:0;padding-left:1em;color:#555;}
+    hr{border:0;border-top:1px solid #e6e6e6;margin:2.4em 0;}
+  </style>
+</head>
+<body>
+<p>This article provides a step by step guide to keeping every coding
+agent on a Linux machine current with one command. A set of Bash scripts
+updates Claude Code, the OpenAI Codex CLI and the three Antigravity
+tools, and reports what is installed without changing anything.</p>
+<figure><img src="https://raw.githubusercontent.com/xbill9/agent-update/main/articles/coding-agent-updater/medium/img/devto-cover.d327219c.jpg" alt="Coding Agent Updater: The Tool You Didn&#x27;t Know You Needed" /></figure>
+<p><a
+href="https://github.com/xbill9/agent-update">https://github.com/xbill9/agent-update</a></p>
+<p><strong>One command, <code>update-agents</code>, updates Claude Code,
+Codex and Antigravity's CLI, hub and IDE. <code>--check</code> reports
+the installed versions and changes nothing. A failing installer for one
+agent leaves the others to finish, and the exit status names the one
+that failed.</strong></p>
+<hr />
+<h4 id="what-is-this-project-trying-to-do">What is this project trying
+to Do?</h4>
+<p>A developer machine in 2026 runs several coding agents. Each one has
+its own installer, its own update command and its own release cadence.
+Claude Code and Codex update from a vendor <code>install.sh</code>.
+Antigravity's CLI has <code>agy update</code>, while its hub and IDE
+ship as tarballs that cannot update themselves when installed that
+way.</p>
+<p>The goal: one command that brings all of them to the latest release,
+one flag that shows where each one stands, and the same behaviour on
+every machine.</p>
+<hr />
+<h4 id="at-this-point-you-should-have">At This Point You Should
+Have…</h4>
+<ul>
+<li>A Linux machine with <code>bash</code>, <code>curl</code>,
+<code>tar</code>, <code>sha256sum</code> and <code>python3</code></li>
+<li>Any of Claude Code, Codex or Antigravity installed, or none of
+them</li>
+<li>Optionally <code>shellcheck</code>, which <code>./test</code> uses
+to lint the scripts</li>
+<li>A clone:
+<code>git clone https://github.com/xbill9/agent-update</code></li>
+</ul>
+<hr />
+<h4 id="step-1--install-the-scripts">Step 1 — Install the Scripts</h4>
+<p>The <code>Makefile</code> tests the scripts, then copies them into
+<code>~/bin</code>:</p>
+<pre class="bash"><code>cd agent-update
+make install</code></pre>
+<p><code>make install</code> runs <code>./test</code> first:
+<code>bash -n</code> on every script, <code>shellcheck</code> at warning
+level, and <code>--help</code> on each one.</p>
+<pre class="text"><code>test: ok</code></pre>
+<p><code>make install BINDIR=/usr/local/bin</code> puts them somewhere
+else, and <code>make uninstall</code> removes them.</p>
+<hr />
+<h4 id="step-2--see-where-every-agent-stands">Step 2 — See Where Every
+Agent Stands</h4>
+<p><code>--check</code> reports installed versions and changes nothing.
+It is the first thing to run on a machine:</p>
+<pre class="bash"><code>update-agents --check
+==&gt; claude-update
+[claude] installed: 2.1.322 (Claude Code)
+ 
+==&gt; codex-update
+[codex] installed: codex-cli 0.166.0
+ 
+==&gt; agy-update
+[agy] installed 1.5.4 (run without --check to update)
+[hub] installed 2.29.0, latest 2.31.0
+[ide] up to date (2.6.0)</code></pre>
+<p>For the hub and the IDE, <code>--check</code> also reads the release
+channel, so it shows the version an update would install. On this
+machine the hub is two minor releases behind and the IDE is current.</p>
+<p>🔎 <strong>Tip: <code>make check</code> runs the same thing</strong>
+from the repository, so the versions are one command away before and
+after a change.</p>
+<hr />
+<h4 id="step-3--update-everything">Step 3 — Update Everything</h4>
+<pre class="bash"><code>update-agents</code></pre>
+<p>It runs <code>claude-update</code>, <code>codex-update</code> and
+<code>agy-update</code> in that order. Each vendor installer prints its
+own progress; the lines each script adds start with the agent's name in
+brackets:</p>
+<pre class="bash"><code>update-agents 2&gt;&amp;1 | grep &#39;^\[&#39;
+[claude] 2.1.322 (Claude Code) -&gt; 2.1.322 (Claude Code)
+[codex] codex-cli 0.166.0 -&gt; codex-cli 0.167.0
+[agy] 1.5.4 -&gt; 1.5.4
+[hub] installed 2.29.0, latest 2.31.0
+[hub] now 2.31.0  (previous kept at /home/xbill/Antigravity-x64.prev)
+[ide] up to date (2.6.0)</code></pre>
+<p>One run moved Codex to 0.167.0 and the hub to 2.31.0, and left Claude
+Code, the agy CLI and the IDE alone, since they were already on the
+latest release. The exit status was 0.</p>
+<p>Names pick a subset:</p>
+<pre class="bash"><code>update-agents claude codex      # just these two
+agy-update --check hub ide      # one tool, two of its parts</code></pre>
+<p>Each per-agent script also runs on its own. A running agent keeps its
+old binary until it restarts; the new version starts with the next
+session.</p>
+<hr />
+<h4
+id="step-4--claude-code-and-codex-the-vendor-installer-unattended">Step
+4 — Claude Code and Codex: The Vendor Installer, Unattended</h4>
+<p>Both scripts call the vendor's own installer, which installs the
+agent when it is missing and updates it otherwise:</p>
+<pre class="bash"><code>curl -fsSL https://claude.ai/install.sh | bash
+curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh</code></pre>
+<p><code>CODEX_NON_INTERACTIVE=1</code> makes the Codex installer run
+without prompts, so it works from cron or from another script.
+<code>set -o pipefail</code> makes a failed download fail the update,
+along with a failed install. Each script prints the version before and
+after the update.</p>
+<hr />
+<h4 id="step-5--antigravity-three-tools-three-channels">Step 5 —
+Antigravity: Three Tools, Three Channels</h4>
+<p><code>agy-update</code> handles three targets, each from a different
+source:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/agent-update/main/articles/coding-agent-updater/medium/img/devto-coding-agent-updater-table-1.png"
+alt="Table: Target, What, Installed at, Update source" /></p>
+<p>The hub and IDE tarball installs refuse to update themselves with
+<code>APPIMAGE env is not defined</code>, so the script does the whole
+update:</p>
+<ol type="1">
+<li>Read the channel for the latest version and the download URL.</li>
+<li>Read the installed version: <code>ideVersion</code> in the IDE's
+<code>product.json</code>, and for the hub, the <code>version</code> in
+the <code>package.json</code> packed inside
+<code>resources/app.asar</code>.</li>
+<li>Compare with <code>sort -V</code>; stop if the installed copy is
+current.</li>
+<li>Download to a <code>.part</code> file and rename it when
+complete.</li>
+<li>Verify: the IDE tarball against the <code>sha256hash</code> its API
+publishes, the hub tarball with a full <code>tar -tzf</code> listing,
+since its channel publishes no hash.</li>
+<li>Extract to a staging directory, then swap it into place.</li>
+</ol>
+<p>The swap keeps the previous copy as <code>&lt;dir&gt;.prev</code>.
+When the extraction fails, the installed copy stays untouched; when the
+final move fails, the previous copy goes back.</p>
+<p>🔎 <strong>Tip: a hub or IDE that is not installed is reported and
+left alone.</strong> <code>--force</code> installs it, or reinstalls one
+that is already current:</p>
+<pre class="bash"><code>agy-update --force ide</code></pre>
+<hr />
+<h4 id="step-6--keep-going-past-a-failure">Step 6 — Keep Going Past a
+Failure</h4>
+<p><code>update-agents</code> runs without <code>set -e</code>. A
+failing child is recorded and the loop moves on, so a broken Codex
+installer leaves Claude Code and Antigravity to update. At the end it
+lists what failed on stderr and exits 1:</p>
+<pre class="text"><code>update-agents: failed: codex</code></pre>
+<p>Every script follows the same exit contract: 0 on success, 1 if an
+update failed, 2 on a bad argument.</p>
+<pre class="bash"><code>update-agents --bogus
+unknown argument: --bogus</code></pre>
+<p>That run exits 2. A typo in a cron line stops at the argument parser
+before any installer runs.</p>
+<hr />
+<h4 id="step-7--the-help-is-the-header">Step 7 — The Help Is the
+Header</h4>
+<p>Each script's header comment is its documentation, and
+<code>--help</code> prints it: usage, options, environment and exit
+status.</p>
+<pre class="bash"><code>update-agents --help
+update-agents — update every coding agent on this machine.
+ 
+Runs each &lt;agent&gt;-update script that sits next to this one, in order, and
+keeps going when one fails, so a broken installer for one agent does not
+block the others.
+ 
+Usage: update-agents [--check] [agent ...]   (default: all agents)
+  --check   report installed versions only; passed through to each script
+  agent     claude | codex | agy</code></pre>
+<p>One <code>sed</code> line in each script does it, so the help and the
+code sit in the same file and change in the same commit.</p>
+<hr />
+<h4 id="step-8--adding-another-agent">Step 8 — Adding Another Agent</h4>
+<p>A new agent is three changes:</p>
+<ul>
+<li><code>bin/&lt;agent&gt;-update</code>, with <code>--check</code>,
+<code>--help</code>, and exit 2 on an unknown argument</li>
+<li>its name in <code>AGENTS</code> in
+<code>bin/update-agents</code></li>
+<li>a row in the README table</li>
+</ul>
+<p>The repository ships a Claude Code skill, <code>/add-agent</code>,
+that makes all three, and a hook that runs <code>shellcheck</code> on
+every edit to a script.</p>
+<p>🔎 <strong>Tip: the umbrella is named <code>update-agents</code>,
+with the verb first.</strong> A machine that runs every
+<code>*-update</code> script in <code>~/bin</code> from a scheduled job
+would otherwise run each agent's update twice: once through the umbrella
+and once directly.</p>
+<hr />
+<h4 id="compare-and-contrast">Compare and Contrast</h4>
+<p><img src="https://raw.githubusercontent.com/xbill9/agent-update/main/articles/coding-agent-updater/medium/img/devto-coding-agent-updater-table-2.png"
+alt="Table: By hand, update-agents" /></p>
+<hr />
+<h4 id="so-which-one">So, Which One?</h4>
+<p>For a machine with more than one coding agent,
+<code>update-agents</code>. Run <code>update-agents --check</code> to
+see where each one stands, then <code>update-agents</code> to bring them
+current. For a single agent, its own script does the same with the same
+flags.</p>
+<hr />
+<h4 id="summary">Summary</h4>
+<p>The goal of this project was to keep every coding agent on a Linux
+machine current with one command. The key to the solution was one script
+per agent with the same flags and exit codes, and an umbrella that runs
+them all and keeps going past a failure. The results were:</p>
+<ul>
+<li>🟢 <code>update-agents</code> updates Claude Code, Codex and
+Antigravity's CLI, hub and IDE.</li>
+<li>🟢 One run on 2026-11-10 updated Codex 0.166.0 to 0.167.0 and the
+hub 2.29.0 to 2.31.0, and left the three current tools alone.</li>
+<li>🟢 <code>--check</code> reports installed versions, and the latest
+available for the hub and IDE, without changing anything.</li>
+<li>🟢 Hub and IDE tarballs are verified and swapped in place, with the
+previous copy kept as <code>&lt;dir&gt;.prev</code>.</li>
+<li>🟢 A failed installer is listed and the others finish; exit status 1
+for a failure, 2 for a bad argument.</li>
+<li>⚠️ The hub channel publishes no hash, so its tarball is checked for
+structure only.</li>
+<li>⚠️ Linux x64 only; macOS and Windows are not covered.</li>
+</ul>
+<p>Scope: one Linux x64 machine, scripts at commit <code>a0f675b</code>,
+with Claude Code 2.1.322, codex-cli 0.166.0, agy 1.5.4, hub 2.29.0 and
+IDE 2.6.0 installed as reported by <code>--check</code> on 2026-11-10.
+The output above comes from <code>./test</code>, <code>--check</code>,
+<code>--help</code>, a bad-argument run and one full
+<code>update-agents</code> run on the same day. Parts of the writing
+were done with AI assistance (Claude).</p>
+<p>The strategy for keeping coding agents current was validated with an
+incremental step by step approach.</p>
+<hr />
+<h4 id="references">References</h4>
+<ul>
+<li>Repository: <a
+href="https://github.com/xbill9/agent-update">https://github.com/xbill9/agent-update</a></li>
+<li>Claude Code setup: <a
+href="https://docs.anthropic.com/en/docs/claude-code/setup">https://docs.anthropic.com/en/docs/claude-code/setup</a></li>
+<li>OpenAI Codex CLI: <a
+href="https://github.com/openai/codex">https://github.com/openai/codex</a></li>
+<li>Google Antigravity: <a
+href="https://antigravity.google">https://antigravity.google</a></li>
+</ul>
+</body>
+</html>
